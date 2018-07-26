@@ -1,0 +1,9 @@
+{% extends 'myprofile/base.html' %}
+
+{% block body %}
+    {{ my_external_tools.user }}
+{% endblock %}
+
+{% if error_message %}
+    <p><strong>{{ error_message }}</strong></p>
+{% endif %}

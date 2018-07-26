@@ -1,0 +1,20 @@
+{
+  "logger": {
+    "title": "Remote Sync"
+  },
+  "uploadOnSave": true,
+  "useAtomicWrites": false,
+  "deleteLocal": false,
+  "hostname": "52.28.116.170",
+  "port": "22",
+  "target": "/home/ubuntu/i_remember_it",
+  "ignore": [
+    ".remote-sync.json",
+    ".git/**"
+  ],
+  "username": "ubuntu",
+  "keyfile": "C:\\Users\\Lavie\\Documents\\Remeber-it\\remember-it.ppk",
+  "passphrase": "Berlin2014!",
+  "watch": [],
+  "transport": "scp"
+}

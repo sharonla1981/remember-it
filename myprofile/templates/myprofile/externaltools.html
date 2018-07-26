@@ -1,0 +1,33 @@
+{% extends 'myprofile/base.html' %}
+
+{% block body %}
+    {% if all_tools %}
+        <table class="table table-striped">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Tool Name</th>
+          <th scope="col">Are You Connected?</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tool in all_tools %}
+            <tr>
+                <th scope="row">{{ tool.rownum }}</th>
+                <td>{{ tool.name }}</td>
+                <td>
+                    {% if tool.connected == 'Connected' %}
+                    <span class="glyphicon glyphicon-ok"></span>
+                    {% else %}
+                    <span class="glyphicon glyphicon-remove">
+                    <a href="{% url 'myprofile:approve-user-external_tool_with_id' tool.id %}">Connect</a>
+                    </span>
+
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+         </tbody>
+    </table>
+    {%endif%}
+{% endblock %}

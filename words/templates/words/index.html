@@ -1,0 +1,26 @@
+{% extends 'words/base.html' %}
+
+{% block body %}
+    {% if all_words %}
+      <table class="table table-striped">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Word</th>
+              <th scope="col">Full Sentence</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for word in all_words %}
+            <tr>
+                <th scope="row">#</th>
+                <td><a href="{% url 'words:detail' word.id %}">{{ word.text }}</a></td>
+                <td>{{ word.full_original_sentence }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+    {% else %}
+      <h3>No Words in your list</h3>
+    {%endif%}
+{% endblock %}

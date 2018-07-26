@@ -1,0 +1,39 @@
+{% extends 'words/base.html' %}
+
+{% block body %}
+    <div class="main-container">
+    {% if sets %}
+        <h1 class="main-title">Your Sets </h1>
+        {% for set in sets %}
+            <p hidden name="set_id">{{ set.id }}</p>
+            <h3>{{ set.title }} ({{ set.lang_definitions }})
+                {% if default_word_set_id == set.id %}
+                <button type="button" name="set-default-word-set" data-ajax-target="{% url 'myprofile:set-default-word-set' set.id %}" class="btn btn-info">Default</button></h3>
+                {% else %}
+                <button type="button" name="set-default-word-set" data-ajax-target="{% url 'myprofile:set-default-word-set' set.id %}" class="btn btn-info">Set Default</button></h3>
+                {% endif %}
+            <table class="table table-striped table-dark">
+              <thead class="table-head">
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Original</th>
+                    <th scope="col">Translation</th>
+                </tr>
+              </thead>
+              <tbody>
+                    {% for term in set.terms %}
+                    <tr>
+                        <th scope="row">{{ term.rank|add:"+1"}}</th>
+                        <td>{{ term.term }}</td>
+                        <td>{{ term.definition }}</td>
+                    </tr>
+                    {% endfor %}
+              </tbody>
+            </table>
+        {% endfor %}
+            <br><br>
+    {% else %}
+      <h3>No Words in your list</h3>
+    {%endif%}
+    </div>
+{% endblock %}

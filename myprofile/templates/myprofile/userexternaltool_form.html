@@ -1,0 +1,12 @@
+{% extends 'myprofile/base.html' %}
+{% block body %}
+    <script>
+
+    </script>
+    <h1>New External Tool</h1>
+    <form method="POST" class="my-ajax-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="save btn btn-default">Save</button>
+    </form>
+{% endblock %}
