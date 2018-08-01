@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from django import forms
 from django.contrib.postgres.fields import ArrayField
 from externaltools.models import ExternalTool
 from words.models import Language
@@ -25,3 +27,14 @@ class UserDefaultWordSet(models.Model):
 
 class UserProfile(User):
     language = models.ForeignKey(Language,null=True,on_delete=models.DO_NOTHING)
+
+class UserLanguages(models.Model):
+    user = UserForeignKey(auto_user_add=True)
+    learning_language = models.ForeignKey(Language, null=True, on_delete=models.DO_NOTHING,related_name='learning')
+    preferred_language = models.ForeignKey(Language, null=True, on_delete=models.DO_NOTHING,related_name='preffered')
+
+    def clean(self, *args, **kwargs):
+
+        if self.learning_language == self.preferred_language:
+            raise ValidationError("Please select different languages")
+        super(UserLanguages,self.clean(*args, **kwargs))

@@ -1,6 +1,7 @@
 from django.views import generic
 from django.http import JsonResponse
 from .models import Word
+from django.contrib.auth.models import User
 from myprofile.models import UserExternalTool,UserDefaultWordSet
 from django.shortcuts import render,redirect
 from django.views.generic import View
@@ -30,12 +31,24 @@ class DetailView(generic.DetailView):
 
 @login_required
 def add(request,word_text):
-    #bold_sentence = str(full_sentence).replace(word_text,'*{}*'.format(word_text))
+    default_word_set_id = ''
     current_user_pk = request.user.pk
+    current_user = User.objects.get(pk=current_user_pk)
     external_tool = UserExternalTool.objects.get(user_id=current_user_pk)
-    default_word_set_id = UserDefaultWordSet.objects.get(user_id=current_user_pk).default_set_id
+    #create Quizlet instance
     user_access_info = external_tool.user_access_info
     ql = QuizletDirect(user_access_info)
+    try:
+        default_word_set_id = UserDefaultWordSet.objects.get(user_id=current_user_pk).default_set_id
+        #check if the set exists in quizlet (to make sure that it wasn't deleted by the user)
+        if default_word_set_id != '':
+            user_set_error = ql.get_set(default_word_set_id)['error']
+            if user_set_error != None:
+                default_word_set_id = ''
+                raise Exception('Set Does not exist')
+    except:
+        pass
+
 
 
     #get oxfrod dictionary translation
@@ -56,13 +69,11 @@ def add(request,word_text):
         translation = google.translate_text(word_text)['translation']
 
     # if the user doesn't have a quizlet set_id saved in our system, a new set will be created and be used
-    if default_word_set_id == None and translation != '':
+    if (default_word_set_id == None or default_word_set_id == '') and translation != '':
         new_set = ql.add_set('iRemember-It', ['sample-term',word_text],['sample-translation',translation],'de','en')
         default_word_set_id = new_set['set_id']
         print(new_set)
-        user_default_word_set = UserDefaultWordSet()
-        user_default_word_set.default_set_id = default_word_set_id
-        user_default_word_set.save()
+        UserDefaultWordSet.objects.update_or_create(user=current_user,defaults={'default_set_id':default_word_set_id})
 
         data = {'ws_id': default_word_set_id, 'word': word_text, 'translation': translation}
 
@@ -90,7 +101,8 @@ def show_words(request):
     try:
         external_tool = UserExternalTool.objects.get(user_id=current_user_pk)
     except:
-        return redirect(reverse('myprofile:detail'))
+        #redirect to on-boarding in case the user is new and doesn't have an external tool (quizlet) connected in the account.
+        return redirect(reverse('myprofile:onboarding'))
     user_access_info = external_tool.user_access_info
     ql = QuizletDirect(user_access_info)
     sets = ql.get_sets()

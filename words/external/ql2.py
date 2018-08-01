@@ -51,6 +51,9 @@ class QuizletDirect():
     return self.make_request('/'.join(['users',
                                     self.access_info['user_id']]))
 
+  def get_set(self,set_id):
+    api_path = 'sets/{}'.format(set_id)
+    return self.make_request(api_path)
 
   def add_set(self, title, terms, definitions, lang_terms, lang_definitions):
     params = {'title': title,

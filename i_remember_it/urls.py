@@ -14,6 +14,7 @@ class MyPasswordResetView(PasswordResetView):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('words/',include('words.urls')),
+    #main path is to words
     path('',include('words.urls')),
     path('myprofile/',include('myprofile.urls')),
     path('accounts/login/',MyLoginView.as_view(),name='account_login'),

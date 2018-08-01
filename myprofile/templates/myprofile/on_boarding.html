@@ -1,0 +1,56 @@
+{% extends 'myprofile/base.html' %}
+
+<!-- multistep form -->
+{% block body %}
+    <form id="msform" action="{% url 'myprofile:user-languages' %}" method="POST">
+      <!-- progressbar -->
+      <ul id="progressbar">
+        <li class="active">Account Setup</li>
+        <li>Connect Your Quizlet</li>
+        <li>Languages</li>
+      </ul>
+        <!-- div for each step -->
+      <fieldset>
+          {% if user.is_authenticated %}
+          {% load account %}
+            <span>Welcome {% user_display user %}!</span><br/>
+              <h3 class="fs-subtitle"><span>You're connected!<br/> Let's go to the next step</span></h3>
+                <input type="button" name="next" class="next action-button" value="Next" />
+          {% else %}
+            <h2 class="fs-title">Create your account</h2>
+            <h3 class="fs-subtitle"></h3>
+
+            {% load account %}
+            {% user_display user %}
+            {% load socialaccount %}
+            {% user_display user as user_display %}
+
+            <a href="{% provider_login_url "google" method="js_sdk" %}" class="btn btn-social-icon btn-google">
+              <span class="fa fa-google"></span>
+             </a>
+            <a href="{% provider_login_url "facebook" %}" class="btn btn-social-icon btn-facebook">
+              <span class="fa fa-facebook"></span>
+             </a>
+          {% endif %}
+      </fieldset>
+      <fieldset>
+        {% if request.GET.quizlet_approved == 'true' %}
+            <h2 class="fs-title">Connect Your Quizlet</h2>
+            <h3 class="fs-subtitle">You're now connected to Quizlet<br/>One more step and we're done</h3>
+            <input type="button" name="next" class="next-last action-button" value="Next" />
+          {% else  %}
+        <h2 class="fs-title">Connect Your Quizlet</h2>
+        <h3 class="fs-subtitle">If you don't have a Quizlet account yet please create one</h3>
+          <button class="action-button"><a href="{% url 'myprofile:approve-user-external_tool_with_id' 1 %}">Click Here</a></button>
+          {% endif %}
+      </fieldset>
+      <fieldset>
+          {% load widget_tweaks %}
+        <h2 class="fs-title">Languages</h2>
+        <h3 class="fs-subtitle">Please choose your languages</h3>
+        {% csrf_token %}
+          {{ languagesForm }}
+        <input type="submit" name="submit" class="submit action-button" value="Submit" />
+      </fieldset>
+    </form>
+{% endblock %}

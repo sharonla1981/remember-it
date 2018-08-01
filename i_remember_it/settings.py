@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     #external
     'django_userforeignkey',
     'service_objects',
-'django_tables2',
+    'django_tables2',
+    'widget_tweaks',
 
     #local
     'words',
@@ -55,6 +56,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     #'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.facebook',
 
     #rest
     'django_extensions',
@@ -80,6 +82,8 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend'
 ]
+
+
 
 ROOT_URLCONF = 'i_remember_it.urls'
 
@@ -160,3 +164,5 @@ LOGIN_REDIRECT_URL = '/'
 ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login"
 
 ACCOUNT_LOGOUT_ON_GET=True
+
+#ACCOUNT_USER_DISPLAY= lambda user: user.get_full_name()

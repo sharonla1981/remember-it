@@ -1,5 +1,16 @@
+html {
+	height: 100%;
+	/*Image only BG fallback*/
+
+	/*background = gradient + image pattern combo*/
+	background:
+		linear-gradient(rgba(196, 102, 0, 0.6), rgba(155, 89, 182, 0.6));
+}
+
 body {
-    background: white url("images/background.png");
+    /*background: white url("images/background.png");*/
+    background-color: inherit;
+    
 }
 
 div.main-container {

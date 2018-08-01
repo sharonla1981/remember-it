@@ -1,6 +1,7 @@
 from django.views import generic
 from django.http import JsonResponse
-from .models import UserExternalTool,UserDefaultWordSet
+from .models import UserExternalTool,UserDefaultWordSet,UserLanguages
+from words.models import Language
 from externaltools.models import ExternalTool
 from django.shortcuts import render,redirect
 from django.views.generic.base import RedirectView,View
@@ -8,10 +9,15 @@ from django.views.generic.edit import CreateView,UpdateView
 from . import forms
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.contrib.auth.models import User
 from .models import UserProfile
+from .forms import UserLanguagesForm
+
+from django.utils.http import urlencode
 
 from importlib import import_module
 from django.conf import settings
@@ -22,7 +28,17 @@ import base64
 
 #quizlet class instance
 encoded_auto = b64_auth_code = str(base64.b64encode(bytes('PuEmP48Pxg:xqtWHJkwKzR24um6rWFBeK', "utf-8")),encoding="utf-8")
-ql = Quizlet('PuEmP48Pxg',encoded_auto,'http://www.iremember-it.com/myprofile/external_tool_redirect/')
+ql = Quizlet('PuEmP48Pxg',encoded_auto,'https://www.iremember-it.com/myprofile/external_tool_redirect/')
+
+def reverse_querystring(view, urlconf=None, args=None, kwargs=None, current_app=None, query_kwargs=None):
+    '''Custom reverse to handle query strings.
+    Usage:
+        reverse('app.views.my_view', kwargs={'pk': 123}, query_kwargs={'search', 'Bob'})
+    '''
+    base_url = reverse(view, urlconf=urlconf, args=args, kwargs=kwargs, current_app=current_app)
+    if query_kwargs:
+        return '{}?{}'.format(base_url, urlencode(query_kwargs))
+    return base_url
 
 @method_decorator(login_required, name='dispatch')
 class MyProfile(CreateView):
@@ -84,10 +100,22 @@ class ExternalToolApproved(View):
         ql.request_token(code)
         #get the user_token from the external tool (quizlet) and store it in the session
         print(ql.access_info)
-        request.session['access_info'] = ql.access_info
-        request.session.save()
+        user_access_info = ql.access_info
+        if user_access_info != '':
+            user_external_tool = UserExternalTool()
+            current_user_pk = self.request.user.pk
+            #only quizlet for now
+            external_tool = ExternalTool.objects.get(pk=1)
+            user = User.objects.get(pk=current_user_pk)
+            user_external_tool.user = user
+            user_external_tool.external_tool = external_tool
+            user_external_tool.user_access_info = user_access_info
+            user_external_tool.save()
+        #request.session['access_info'] = ql.access_info
+        #request.session.save()
         #return redirect(reverse('myprofile:approve-user-external_tool_with_id',1))
-        return redirect('http://www.iremember-it.com/myprofile/approve_external_tool/1/')
+        #return redirect('https://www.iremember-it.com/myprofile/approve_external_tool/1/')
+        return redirect(reverse_querystring('myprofile:onboarding',query_kwargs={'quizlet_approved':'true'}))
 
 
 @method_decorator(login_required, name='dispatch')
@@ -121,3 +149,26 @@ def setUserDefaultWordSet(request,set_id):
     user_default_word_set.save()
     data = {'update': 1}
     return JsonResponse(data)
+
+def onBoarding(request):
+    languagesForm = UserLanguagesForm()
+    return render(request,'myprofile/on_boarding.html',{'languagesForm':languagesForm})
+
+def add_or_updated_languages(request):
+    if request.method == 'POST':
+        learning_language = request.POST.get('learning_language')
+        preferred_language = request.POST.get('preferred_language')
+        response_data = {}
+        current_user_pk = request.user.pk
+        user = User.objects.get(pk=current_user_pk)
+        preferred_language_instance = Language.objects.get(pk=preferred_language)
+        learning_language_instance = Language.objects.get(pk=learning_language)
+        user_languages,created = UserLanguages.objects.update_or_create(user=user, defaults={'preferred_language':preferred_language_instance,
+                                                                                             'learning_language':learning_language_instance})
+        response_data['result'] = 'Create user_languages successful!'
+        response_data['user_languages_pk'] = user_languages.pk
+        response_data['user_languages_l_language'] = learning_language
+
+        return JsonResponse(response_data)
+    else:
+        return JsonResponse({'error':401,'error_message':'cannot make a get request'})
