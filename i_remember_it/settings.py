@@ -159,10 +159,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+
 LOGIN_REDIRECT_URL = '/'
 
 ACCOUNT_LOGOUT_REDIRECT_URL = "/accounts/login"
 
 ACCOUNT_LOGOUT_ON_GET=True
 
-#ACCOUNT_USER_DISPLAY= lambda user: user.get_full_name()
+ACCOUNT_USER_DISPLAY= lambda user: user.get_full_name()

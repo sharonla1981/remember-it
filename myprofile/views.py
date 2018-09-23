@@ -169,6 +169,7 @@ def add_or_updated_languages(request):
         response_data['user_languages_pk'] = user_languages.pk
         response_data['user_languages_l_language'] = learning_language
 
-        return JsonResponse(response_data)
+
+        return redirect(reverse('words:index'))
     else:
         return JsonResponse({'error':401,'error_message':'cannot make a get request'})

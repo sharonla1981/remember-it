@@ -2,7 +2,7 @@ from django.views import generic
 from django.http import JsonResponse
 from .models import Word
 from django.contrib.auth.models import User
-from myprofile.models import UserExternalTool,UserDefaultWordSet
+from myprofile.models import UserExternalTool,UserDefaultWordSet,UserLanguages
 from django.shortcuts import render,redirect
 from django.views.generic import View
 from django.contrib.auth.decorators import login_required
@@ -34,6 +34,9 @@ def add(request,word_text):
     default_word_set_id = ''
     current_user_pk = request.user.pk
     current_user = User.objects.get(pk=current_user_pk)
+    user_languages = UserLanguages.objects.get(user=current_user)
+    learning_language = user_languages.learning_language.alpha_2
+    preferred_language = user_languages.preferred_language.alpha_2
     external_tool = UserExternalTool.objects.get(user_id=current_user_pk)
     #create Quizlet instance
     user_access_info = external_tool.user_access_info
@@ -56,7 +59,7 @@ def add(request,word_text):
     data = {}
     try:
         #in case oxford return an example it would replace the data pushed to quizlet
-        oxford = oxford_api('de','en')
+        oxford = oxford_api(learning_language,preferred_language)
         result = oxford.get_original_and_translation_example(word_text)
         translation = result['translation']
         if result['original_language_exmaple'] != '':
@@ -65,12 +68,12 @@ def add(request,word_text):
 
     except:
         #google tranlate is the fallback translation service
-        google = GoogleTranslate('en')
+        google = GoogleTranslate(preferred_language)
         translation = google.translate_text(word_text)['translation']
 
     # if the user doesn't have a quizlet set_id saved in our system, a new set will be created and be used
     if (default_word_set_id == None or default_word_set_id == '') and translation != '':
-        new_set = ql.add_set('iRemember-It', ['sample-term',word_text],['sample-translation',translation],'de','en')
+        new_set = ql.add_set('iRemember-It', ['sample-term',word_text],['sample-translation',translation],learning_language,preferred_language)
         default_word_set_id = new_set['set_id']
         print(new_set)
         UserDefaultWordSet.objects.update_or_create(user=current_user,defaults={'default_set_id':default_word_set_id})
